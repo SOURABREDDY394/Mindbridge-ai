@@ -1,144 +1,123 @@
-# EventOS
+# MindBridge AI
 
-EventOS is an event-tech MVP for creating, managing, and verifying events. The product story is simple: organizers create events, participants browse and apply, organizers approve applications, approved participants receive QR tickets, attendance is verified, and certificates/proof records can become part of a public Proof Passport.
+A Gemma 4-powered mental wellness companion that helps students understand their emotions, reflect safely, and get guided support.
 
-The app is built as a Vite React frontend with Supabase schema, storage, and Edge Function support. Demo access is currently one-click local access for fast project review, while event data infrastructure and Groq-backed AI generation are prepared through Supabase.
+MindBridge AI is not a replacement for therapy or medical diagnosis. It is a supportive reflection tool for emotional awareness and self-care.
 
-## Project Overview
+## Problem Statement
 
-EventOS focuses on two primary experiences:
+Many students feel stressed, anxious, lonely, or overwhelmed but do not always know how to explain what they are feeling. Some students hesitate to talk to others immediately. They need a safe first step where they can write freely, understand their mood, and get simple supportive guidance.
 
-- Organizer experience: create and manage events, including AI-assisted event draft generation, manual event creation, registration forms, application review, attendance, volunteers, sponsors, budget, and certificates.
-- Participant experience: browse upcoming events, submit approval-based registrations, track pending/approved/rejected applications, view QR tickets after approval, and access certificates/proof.
+## Solution
 
-Supporting workspaces are included for:
+MindBridge AI lets users write how they feel. The app uses Gemma 4 through local Ollama to analyze the journal text gently and provide:
 
-- Volunteers: applications, assigned tasks, completed hours, skills, and proof records.
-- Sponsors: browse events and manage sponsor interests.
-- Public proof: Proof Passport and certificate verification routes.
+- Mood understanding
+- Emotion breakdown
+- Supportive reflection
+- Safe next-step suggestions
+- Reflection prompts
+- Mood trend dashboard
+- Emergency safety message for concerning text
 
-## Setup Instructions
+If the user writes something seriously concerning, the app shows:
 
-### 1. Install dependencies
+```text
+Please talk to a trusted person immediately or contact local emergency/help services.
+```
+
+## How Gemma 4 Is Used
+
+Gemma 4 is used to understand the user's journal text, detect emotional tone, generate supportive reflections, and suggest safe coping actions.
+
+The app sends the journal entry to a local Ollama model:
+
+```text
+gemma4:latest
+```
+
+Gemma 4 returns structured JSON containing:
+
+- Detected mood
+- Possible reason
+- Emotion tags
+- Supportive message
+- Suggested actions
+- Reflection prompt
+- Safety flag
+
+The app also includes local safety guardrails and local mood inference so the selected mood button does not override the user's journal text.
+
+## Demo Features
+
+- Daily mood check-in: Happy, Okay, Stressed, Sad, Angry, Tired
+- Journal input for free-form reflection
+- Gemma 4-powered response
+- Mood dashboard with a 7-day Recharts trend
+- Reflection prompts
+- Emergency safety message
+- One-page comic-inspired website design
+
+## Tech Stack
+
+- Frontend: React, TypeScript, Vite
+- Styling: Tailwind CSS
+- AI: Gemma 4 through Ollama
+- Charts: Recharts
+- Icons: Lucide React
+- Deployment targets: Vercel for frontend, Render or another backend host if a deployed Ollama-backed API is needed
+
+## Run Locally
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-### 2. Configure frontend environment
-
-Create `.env.local` in the project root:
-
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-Do not add `GROQ_API_KEY` to any Vite env file. Vite env variables are exposed to the browser.
-
-### 3. Run the app locally
+Start Ollama:
 
 ```bash
-npm run dev
+ollama serve
 ```
 
-If port `5173` is busy, Vite may choose another port such as `3000`.
-
-### 4. Build for production
+Make sure Gemma 4 is available:
 
 ```bash
-npm run build
+ollama list
 ```
 
-### 5. Set up Supabase database
+If needed, pull the model:
 
-Run the SQL migrations in `supabase/migrations` in your Supabase project, starting with:
+```bash
+ollama pull gemma4:latest
+```
+
+Start the app:
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+Open:
 
 ```text
-supabase/migrations/001_eventos_schema.sql
+http://localhost:3000
 ```
 
-The schema includes tables for profiles, events, registrations, attendance, event form fields, volunteers, sponsors, budgets, certificates, proof records, and storage buckets.
-
-### 6. Deploy Groq Edge Functions
-
-Set the Groq key as a Supabase secret:
+## Build
 
 ```bash
-supabase secrets set GROQ_API_KEY=your_groq_key
-```
-
-Deploy the event draft function:
-
-```bash
-supabase functions deploy generate-event-draft --no-verify-jwt
-```
-
-Optional sponsor pitch function:
-
-```bash
-supabase functions deploy generate-sponsor-pitch
-```
-
-Optional model override:
-
-```bash
-supabase secrets set GROQ_MODEL=llama-3.3-70b-versatile
-```
-
-Important: the current app uses one-click demo login for review. Real Supabase writes protected by RLS, such as inserting events into `public.events`, require a real Supabase Auth organizer session or a secure server-side create-event flow.
-
-## Features Implemented
-
-- Premium EventOS landing page with AI event creation prompt.
-- One-click demo login for fast access to the product.
-- Dashboard workspace routing for Organizer, Participant, Volunteer, and Sponsor.
-- AI Create Event page wired to a secure Supabase Edge Function for Groq-powered structured event draft generation.
-- Editable event draft form after AI generation.
-- Manual event creation flow.
-- Event poster upload helper and public event poster/fallback display.
-- Public events listing with upcoming/past lifecycle filtering.
-- Event detail page with approval-based registration flow.
-- Registration statuses: pending, approved, rejected, attended, cancelled.
-- Organizer registration review with approve/reject behavior.
-- Participant applications and tickets pages with pending/approved/rejected states.
-- QR ticket availability only after approval.
-- Attendance logic guarded by registration status.
-- Volunteer module with applications, task tracking, completed hours, skills, and proof records.
-- Sponsor module with event browsing and sponsor interests.
-- Budget and certificate management surfaces.
-- Public Proof Passport and certificate verification routes.
-- Supabase database migrations and RLS policies.
-- Supabase Storage buckets for event posters and certificates.
-- Supabase Edge Function for Groq sponsor pitch generation.
-
-## Tech Stack Used
-
-- React 19
-- TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- Radix UI primitives
-- Lucide React icons
-- Supabase JavaScript client
-- Supabase PostgreSQL, Row Level Security, Storage, and Edge Functions
-- Groq API through Supabase Edge Functions
-- QR code rendering with `qrcode.react`
-- Charts with Recharts
-- Toasts with Sonner
-
-## Useful Commands
-
-```bash
-npm run dev
 npm run build
-npm run lint
-npm run preview
 ```
 
-## Repository Notes
+## Safety and Privacy Notes
 
-- `.env.local` is ignored and should not be committed.
-- `dist`, `node_modules`, and local scrape/reference files are ignored.
-- Groq keys must live only in Supabase secrets, never in frontend environment variables.
+- No API keys are required for the local Ollama demo.
+- Do not commit API keys, tokens, or secrets.
+- The Vite dev server proxies `/ollama` requests to local Ollama at `http://127.0.0.1:11434`.
+- A deployed Vercel frontend cannot directly access Ollama running on a local laptop. For deployment, use a backend service that can securely reach an Ollama server or replace it with a hosted model API.
+
+## Pitch Line
+
+We are not trying to replace therapists. We are building the first safe step between feeling overwhelmed and asking for help. Gemma 4 helps users reflect, understand their emotions, and take small positive actions.
